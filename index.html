@@ -5,32 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snap Score Booster - Login</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;}
-    body {background:#FFFC00; min-height:100vh; display:flex; align-items:center; justify-content:center; color:#000;}
-    .container {background:white; border-radius:20px; padding:40px 30px; width:90%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.2); text-align:center;}
-    .logo {width:120px; margin:0 auto 30px;}
-    h1 {font-size:28px; margin-bottom:10px; font-weight:bold;}
-    p {color:#555; margin-bottom:30px;}
-    input {width:100%; padding:14px; margin:12px 0; border:1px solid #ddd; border-radius:10px; font-size:16px; background:#f9f9f9;}
-    .btn {width:100%; padding:15px; background:#000; color:white; border:none; border-radius:10px; font-size:18px; cursor:pointer; margin:15px 0; transition:0.3s;}
-    .btn:hover {background:#333;}
-    .score-section {display:none; margin-top:30px;}
-    .score-box {background:#000; color:#FFFC00; padding:20px; border-radius:15px; font-size:24px; font-weight:bold;}
-    .fake-btn {background:#00D1FF;}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    body {
+      background: #FFFC00; /* Snapchat yellow */
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .logo {
+      width: 120px;
+      margin: 0 auto 30px;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    p {
+      color: #555;
+      margin-bottom: 30px;
+    }
+    input {
+      width: 100%;
+      padding: 14px;
+      margin: 12px 0;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+      background: #f9f9f9;
+    }
+    .btn {
+      width: 100%;
+      padding: 15px;
+      background: #000;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      margin: 15px 0;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #333;
+    }
+    .score-section {
+      display: none;
+      margin-top: 30px;
+    }
+    .score-box {
+      background: #000;
+      color: #FFFC00;
+      padding: 20px;
+      border-radius: 15px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .fake-btn {
+      background: #00D1FF;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Login / Signup Page -->
+  <!-- Original Login Page -->
   <div class="container" id="loginPage">
     <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Snapchat Ghost Logo">
     <h1>Snap Score Booster</h1>
-    <p>Login or Sign Up to see your Snap Score!</p>
+    <p>Login to increase your Snap Score fast!</p>
     
-    <input type="email" placeholder="Email" id="email">
+    <input type="text" placeholder="Username or Email" id="username">
     <input type="password" placeholder="Password" id="password">
     
-    <button class="btn" id="loginBtn">Log In</button>
+    <button class="btn" id="loginBtn">Log In & Boost Score</button>
     <button class="btn fake-btn" id="signupBtn">Sign Up</button>
   </div>
 
@@ -39,14 +102,15 @@
     <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Ghost">
     <h1>Your Snap Score</h1>
     <div class="score-box" id="scoreDisplay">0</div>
-    <p style="margin:20px 0; color:#555;">Boost your score!</p>
+    <p style="margin:20px 0; color:#555;">Boosting your score...</p>
     <button class="btn" id="boostBtn">Increase Score Now!</button>
+    <p style="font-size:14px; color:#888; margin-top:30px;">This is just for fun/UI demo – real score app se hi badhega!</p>
   </div>
 
-  <!-- Supabase JS -->
+  <!-- Supabase JS Integration -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <script>
-    // Supabase credentials
+    // Supabase keys
     const supabaseUrl = "https://mdcsbpbrcvudxbdjchwt.supabase.co";
     const supabaseKey = "sb_publishable_jqIhtEIHIqtwYCmx5cpKsQ_0GwVPr6X";
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
@@ -55,7 +119,7 @@
     const scorePage = document.getElementById("scorePage");
     const scoreDisplay = document.getElementById("scoreDisplay");
 
-    const emailInput = document.getElementById("email");
+    const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const loginBtn = document.getElementById("loginBtn");
     const signupBtn = document.getElementById("signupBtn");
@@ -64,7 +128,7 @@
     let currentUserId;
     let currentScore = 0;
 
-    // Show score page
+    // Show Score Page
     async function showScorePage(userId) {
       loginPage.style.display = "none";
       scorePage.style.display = "block";
@@ -85,14 +149,14 @@
 
     // Signup
     signupBtn.addEventListener("click", async () => {
-      const email = emailInput.value;
+      const email = usernameInput.value;
       const password = passwordInput.value;
       if (!email || !password) return alert("Email & password required!");
 
       const { user, error } = await supabase.auth.signUp({ email, password });
       if (error) return alert("Signup failed: " + error.message);
 
-      // Insert user & score in tables
+      // Insert user + score in tables
       await supabase.from("users").insert([{ username: user.id }]);
       await supabase.from("scores").insert([{ username: user.id, score: 0 }]);
 
@@ -102,7 +166,7 @@
 
     // Login
     loginBtn.addEventListener("click", async () => {
-      const email = emailInput.value;
+      const email = usernameInput.value;
       const password = passwordInput.value;
       if (!email || !password) return alert("Email & password required!");
 
@@ -112,14 +176,13 @@
       showScorePage(session.user.id);
     });
 
-    // Boost score (100 to 10000 random increase)
+    // Boost button (100–10000 random increase)
     boostBtn.addEventListener("click", async () => {
       const increment = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
       currentScore += increment;
-
       scoreDisplay.innerText = currentScore.toLocaleString();
 
-      // Update in Supabase table
+      // Update Supabase table
       await supabase.from("scores").update({ score: currentScore }).eq("username", currentUserId);
     });
   </script>
