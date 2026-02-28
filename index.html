@@ -84,13 +84,14 @@
 </head>
 <body>
 
-  <!-- Original Login Page -->
+  <!-- Login Page -->
   <div class="container" id="loginPage">
     <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Snapchat Ghost Logo">
     <h1>Snap Score Booster</h1>
     <p>Login to increase your Snap Score fast!</p>
     
-    <input type="text" placeholder="Username or Email" id="username">
+    <!-- Changed input type to email -->
+    <input type="email" placeholder="Email" id="username">
     <input type="password" placeholder="Password" id="password">
     
     <button class="btn" id="loginBtn">Log In & Boost Score</button>
@@ -107,7 +108,7 @@
     <p style="font-size:14px; color:#888; margin-top:30px;">This is just for fun/UI demo – real score app se hi badhega!</p>
   </div>
 
-  <!-- Supabase JS Integration -->
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <script>
     // Supabase keys
@@ -156,7 +157,7 @@
       const { user, error } = await supabase.auth.signUp({ email, password });
       if (error) return alert("Signup failed: " + error.message);
 
-      // Insert user + score in tables
+      // Insert user + score
       await supabase.from("users").insert([{ username: user.id }]);
       await supabase.from("scores").insert([{ username: user.id, score: 0 }]);
 
