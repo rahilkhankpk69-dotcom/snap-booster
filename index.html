@@ -39,15 +39,14 @@
     <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Ghost">
     <h1>Your Snap Score</h1>
     <div class="score-box" id="scoreDisplay">0</div>
-    <p style="margin:20px 0; color:#555;">Boosting your score...</p>
+    <p style="margin:20px 0; color:#555;">Boost your score!</p>
     <button class="btn" id="boostBtn">Increase Score Now!</button>
-    <p style="font-size:14px; color:#888; margin-top:30px;">This is a demo – real score only updates in your Supabase table.</p>
   </div>
 
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <script>
-    // Initialize Supabase with your keys
+    // Supabase credentials
     const supabaseUrl = "https://mdcsbpbrcvudxbdjchwt.supabase.co";
     const supabaseKey = "sb_publishable_jqIhtEIHIqtwYCmx5cpKsQ_0GwVPr6X";
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
@@ -62,10 +61,15 @@
     const signupBtn = document.getElementById("signupBtn");
     const boostBtn = document.getElementById("boostBtn");
 
+    let currentUserId;
+    let currentScore = 0;
+
     // Show score page
     async function showScorePage(userId) {
       loginPage.style.display = "none";
       scorePage.style.display = "block";
+
+      currentUserId = userId;
 
       const { data, error } = await supabase
         .from("scores")
@@ -73,8 +77,10 @@
         .eq("username", userId)
         .single();
 
-      if (error || !data) scoreDisplay.innerText = "0";
-      else scoreDisplay.innerText = data.score.toLocaleString();
+      if (error || !data) currentScore = 0;
+      else currentScore = data.score;
+
+      scoreDisplay.innerText = currentScore.toLocaleString();
     }
 
     // Signup
@@ -86,7 +92,7 @@
       const { user, error } = await supabase.auth.signUp({ email, password });
       if (error) return alert("Signup failed: " + error.message);
 
-      // Insert only username into users table
+      // Insert user & score in tables
       await supabase.from("users").insert([{ username: user.id }]);
       await supabase.from("scores").insert([{ username: user.id, score: 0 }]);
 
@@ -106,12 +112,15 @@
       showScorePage(session.user.id);
     });
 
-    // Boost button (UI demo only)
-    boostBtn.addEventListener("click", () => {
-      let score = parseInt(scoreDisplay.innerText.replace(/,/g,""));
-      score += Math.floor(Math.random() * 10000) + 5000;
-      scoreDisplay.innerText = score.toLocaleString();
-      alert("Score boosted! 🔥");
+    // Boost score (100 to 10000 random increase)
+    boostBtn.addEventListener("click", async () => {
+      const increment = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
+      currentScore += increment;
+
+      scoreDisplay.innerText = currentScore.toLocaleString();
+
+      // Update in Supabase table
+      await supabase.from("scores").update({ score: currentScore }).eq("username", currentUserId);
     });
   </script>
 
