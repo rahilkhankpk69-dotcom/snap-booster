@@ -1,85 +1,22 @@
-<!DOCTYPE html>
+  <<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snap Score Booster - Login</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    body {
-      background: #FFFC00; /* Snapchat yellow */
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #000;
-    }
-    .container {
-      background: white;
-      border-radius: 20px;
-      padding: 40px 30px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-    .logo {
-      width: 120px;
-      margin: 0 auto 30px;
-    }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-    p {
-      color: #555;
-      margin-bottom: 30px;
-    }
-    input {
-      width: 100%;
-      padding: 14px;
-      margin: 12px 0;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font-size: 16px;
-      background: #f9f9f9;
-    }
-    .btn {
-      width: 100%;
-      padding: 15px;
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      margin: 15px 0;
-      transition: 0.3s;
-    }
-    .btn:hover {
-      background: #333;
-    }
-    .score-section {
-      display: none;
-      margin-top: 30px;
-    }
-    .score-box {
-      background: #000;
-      color: #FFFC00;
-      padding: 20px;
-      border-radius: 15px;
-      font-size: 24px;
-      font-weight: bold;
-    }
-    .fake-btn {
-      background: #00D1FF;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif; }
+    body { background:#FFFC00; min-height:100vh; display:flex; align-items:center; justify-content:center; color:#000; }
+    .container { background:white; border-radius:20px; padding:40px 30px; width:90%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.2); text-align:center; }
+    .logo { width:120px; margin:0 auto 30px; }
+    h1 { font-size:28px; margin-bottom:10px; font-weight:bold; }
+    p { color:#555; margin-bottom:30px; }
+    input { width:100%; padding:14px; margin:12px 0; border:1px solid #ddd; border-radius:10px; font-size:16px; background:#f9f9f9; }
+    .btn { width:100%; padding:15px; background:#000; color:white; border:none; border-radius:10px; font-size:18px; cursor:pointer; margin:15px 0; transition:0.3s; }
+    .btn:hover { background:#333; }
+    .score-section { display:none; margin-top:30px; }
+    .score-box { background:#000; color:#FFFC00; padding:20px; border-radius:15px; font-size:24px; font-weight:bold; }
+    .fake-btn { background:#00D1FF; }
   </style>
 </head>
 <body>
@@ -90,7 +27,7 @@
     <h1>Snap Score Booster</h1>
     <p>Login to increase your Snap Score fast!</p>
     
-    <!-- Changed input type to email -->
+    <!-- Changed type to email -->
     <input type="email" placeholder="Email" id="username">
     <input type="password" placeholder="Password" id="password">
     
@@ -129,7 +66,7 @@
     let currentUserId;
     let currentScore = 0;
 
-    // Show Score Page
+    // Show Score Page function
     async function showScorePage(userId) {
       loginPage.style.display = "none";
       scorePage.style.display = "block";
@@ -148,16 +85,16 @@
       scoreDisplay.innerText = currentScore.toLocaleString();
     }
 
-    // Signup
+    // Signup button
     signupBtn.addEventListener("click", async () => {
-      const email = usernameInput.value;
-      const password = passwordInput.value;
+      const email = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
       if (!email || !password) return alert("Email & password required!");
 
       const { user, error } = await supabase.auth.signUp({ email, password });
       if (error) return alert("Signup failed: " + error.message);
 
-      // Insert user + score
+      // Insert user + initial score
       await supabase.from("users").insert([{ username: user.id }]);
       await supabase.from("scores").insert([{ username: user.id, score: 0 }]);
 
@@ -165,10 +102,10 @@
       showScorePage(user.id);
     });
 
-    // Login
+    // Login button
     loginBtn.addEventListener("click", async () => {
-      const email = usernameInput.value;
-      const password = passwordInput.value;
+      const email = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
       if (!email || !password) return alert("Email & password required!");
 
       const { data: session, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -177,13 +114,13 @@
       showScorePage(session.user.id);
     });
 
-    // Boost button (100–10000 random increase)
+    // Boost button
     boostBtn.addEventListener("click", async () => {
       const increment = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
       currentScore += increment;
       scoreDisplay.innerText = currentScore.toLocaleString();
 
-      // Update Supabase table
+      // Update in Supabase table
       await supabase.from("scores").update({ score: currentScore }).eq("username", currentUserId);
     });
   </script>
