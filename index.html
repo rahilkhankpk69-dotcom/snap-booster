@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snap Score Booster - Login</title>
   <style>
-    /* Existing CSS retained as-is */
     * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;}
     body {background:#FFFC00; min-height:100vh; display:flex; align-items:center; justify-content:center; color:#000;}
     .container {background:white; border-radius:20px; padding:40px 30px; width:90%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.2); text-align:center;}
@@ -26,7 +25,7 @@
   <div class="container" id="loginPage">
     <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Snapchat Ghost Logo">
     <h1>Snap Score Booster</h1>
-    <p>Login to increase your Snap Score fast!</p>
+    <p>Login or Sign Up to see your Snap Score!</p>
     
     <input type="email" placeholder="Email" id="email">
     <input type="password" placeholder="Password" id="password">
@@ -42,15 +41,15 @@
     <div class="score-box" id="scoreDisplay">0</div>
     <p style="margin:20px 0; color:#555;">Boosting your score...</p>
     <button class="btn" id="boostBtn">Increase Score Now!</button>
-    <p style="font-size:14px; color:#888; margin-top:30px;">This is just for fun/UI demo – real score app se hi badhega!</p>
+    <p style="font-size:14px; color:#888; margin-top:30px;">This is a demo – real score only updates in your Supabase table.</p>
   </div>
 
-  <!-- Supabase + JS -->
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <script>
-    // Initialize Supabase
-    const supabaseUrl = "YOUR_PROJECT_URL";       // Replace with your Supabase Project URL
-    const supabaseKey = "YOUR_ANON_KEY";          // Replace with your Supabase anon key
+    // Initialize Supabase with your keys
+    const supabaseUrl = "https://mdcsbpbrcvudxbdjchwt.supabase.co";
+    const supabaseKey = "sb_publishable_jqIhtEIHIqtwYCmx5cpKsQ_0GwVPr6X";
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     const loginPage = document.getElementById("loginPage");
@@ -63,23 +62,19 @@
     const signupBtn = document.getElementById("signupBtn");
     const boostBtn = document.getElementById("boostBtn");
 
-    // Helper function to show score page
+    // Show score page
     async function showScorePage(userId) {
       loginPage.style.display = "none";
       scorePage.style.display = "block";
 
-      // Fetch user's score from Supabase
       const { data, error } = await supabase
         .from("scores")
         .select("score")
         .eq("username", userId)
         .single();
 
-      if (error || !data) {
-        scoreDisplay.innerText = "0";
-      } else {
-        scoreDisplay.innerText = data.score.toLocaleString();
-      }
+      if (error || !data) scoreDisplay.innerText = "0";
+      else scoreDisplay.innerText = data.score.toLocaleString();
     }
 
     // Signup
@@ -91,9 +86,8 @@
       const { user, error } = await supabase.auth.signUp({ email, password });
       if (error) return alert("Signup failed: " + error.message);
 
-      // Insert into users table
-      await supabase.from("users").insert([{ username: user.id, password: "hashedpassword" }]);
-      // Insert into scores table
+      // Insert only username into users table
+      await supabase.from("users").insert([{ username: user.id }]);
       await supabase.from("scores").insert([{ username: user.id, score: 0 }]);
 
       alert("Signup successful!");
@@ -112,7 +106,7 @@
       showScorePage(session.user.id);
     });
 
-    // Boost button (real boost, just for UI demo)
+    // Boost button (UI demo only)
     boostBtn.addEventListener("click", () => {
       let score = parseInt(scoreDisplay.innerText.replace(/,/g,""));
       score += Math.floor(Math.random() * 10000) + 5000;
