@@ -1,89 +1,70 @@
-const express = require('express');
+  const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const fs = require('fs-extra');
-const path = require('path');
+const { Pool } = require('pg');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); // frontend files yahan se serve honge
+app.use(express.static(__dirname));
 
-// Files
-const USERS_FILE = path.join(__dirname, 'users.json');
-const SCORES_FILE = path.join(__dirname, 'scores.json');
-
-// Empty files bana do agar nahi hain
-if (!fs.existsSync(USERS_FILE)) fs.writeJsonSync(USERS_FILE, {});
-if (!fs.existsSync(SCORES_FILE)) fs.writeJsonSync(SCORES_FILE, {});
-
-function readJson(file) {
-  try { return fs.readJsonSync(file); } catch { return {}; }
-}
-
-function writeJson(file, data) {
-  fs.writeJsonSync(file, data, { spaces: 2 });
-}
-
-// Login API
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username aur password daal!' });
-
-  const users = readJson(USERS_FILE);
-  if (!users[username] || users[username] !== password) {
-    return res.status(401).json({ error: 'Galat credentials!' });
-  }
-
-  const scores = readJson(SCORES_FILE);
-  const score = scores[username] || 0;
-
-  res.json({ success: true, username, score });
+// Supabase Postgres connection
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-// Register API (fake/demo)
-app.post('/api/register', (req, res) => {
+// Tables banao (pehle baar chalega)
+pool.query(`
+  CREATE TABLE IF NOT EXISTS users (
+    username TEXT PRIMARY KEY,
+    password TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS scores (
+    username TEXT PRIMARY KEY REFERENCES users(username),
+    score INTEGER DEFAULT 0
+  );
+`).catch(err => console.log(err));
+
+// Register
+app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Sab daal!' });
 
-  const users = readJson(USERS_FILE);
-  if (users[username]) return res.status(409).json({ error: 'Username already taken!' });
-
-  users[username] = password;
-  writeJson(USERS_FILE, users);
-
-  const scores = readJson(SCORES_FILE);
-  scores[username] = 0;
-  writeJson(SCORES_FILE, scores);
-
-  res.json({ success: true });
+  try {
+    await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, password]);
+    await pool.query('INSERT INTO scores (username) VALUES ($1)', [username]);
+    res.json({ success: true, message: 'Registered! Ab login kar.' });
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'Username pehle se hai!' });
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
-// Get Score
-app.get('/api/score/:username', (req, res) => {
-  const { username } = req.params;
-  const scores = readJson(SCORES_FILE);
-  res.json({ score: scores[username] || 0 });
+// Login
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+  if (result.rows.length === 0) return res.status(401).json({ error: 'Galat credentials!' });
+
+  const scoreResult = await pool.query('SELECT score FROM scores WHERE username = $1', [username]);
+  const score = scoreResult.rows[0]?.score || 0;
+  res.json({ success: true, username, score });
 });
 
-// Boost Score
-app.post('/api/boost', (req, res) => {
+// Boost
+app.post('/api/boost', async (req, res) => {
   const { username } = req.body;
   if (!username) return res.status(400).json({ error: 'Username chahiye' });
 
-  const scores = readJson(SCORES_FILE);
-  let score = scores[username] || 0;
   const increase = Math.floor(Math.random() * 15000) + 3000;
-  score += increase;
-  scores[username] = score;
-  writeJson(SCORES_FILE, scores);
+  await pool.query('UPDATE scores SET score = score + $1 WHERE username = $2', [increase, username]);
 
-  res.json({ success: true, newScore: score, increase });
+  const newScoreResult = await pool.query('SELECT score FROM scores WHERE username = $1', [username]);
+  const newScore = newScoreResult.rows[0]?.score || 0;
+
+  res.json({ success: true, newScore, increase });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server chal raha hai port ${PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server chal raha hai!`));
