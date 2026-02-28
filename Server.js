@@ -26,9 +26,8 @@ const pool = new Pool({
         score INTEGER DEFAULT 0
       );
     `);
-    console.log('Tables ready');
   } catch (err) {
-    console.log('Table error:', err.message);
+    console.log(err.message);
   }
 })();
 
@@ -39,22 +38,22 @@ app.post('/api/register', async (req, res) => {
   try {
     await pool.query('INSERT INTO users (username, password) VALUES ($1, $2)', [username, password]);
     await pool.query('INSERT INTO scores (username) VALUES ($1)', [username]);
-    res.json({ success: true, message: 'Registered! Login kar.' });
+    res.json({ success: true });
   } catch (err) {
-    if (err.code === '23505') return res.status(409).json({ error: 'Username pehle se hai!' });
-    res.status(500).json({ error: 'Server masla' });
+    if (err.code === '23505') return res.status(409).json({ error: 'Username already' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
-  if (result.rows.length === 0) return res.status(401).json({ error: 'Galat username ya password!' });
+  if (result.rows.length === 0) return res.status(401).json({ error: 'Galat' });
 
   const scoreResult = await pool.query('SELECT score FROM scores WHERE username = $1', [username]);
   const score = scoreResult.rows[0]?.score || 0;
 
-  res.json({ success: true, username, score });
+  res.json({ success: true, score });
 });
 
 app.post('/api/boost', async (req, res) => {
@@ -71,4 +70,4 @@ app.post('/api/boost', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server chal raha hai ${PORT} pe`));
+app.listen(PORT);
