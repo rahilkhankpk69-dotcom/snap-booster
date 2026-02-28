@@ -1,122 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Snap Score Booster - Login</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif; }
-    body { background:#FFFC00; min-height:100vh; display:flex; align-items:center; justify-content:center; color:#000; }
-    .container { background:white; border-radius:20px; padding:40px 30px; width:90%; max-width:400px; box-shadow:0 10px 30px rgba(0,0,0,0.2); text-align:center; }
-    .logo { width:120px; margin:0 auto 30px; }
-    h1 { font-size:28px; margin-bottom:10px; font-weight:bold; }
-    p { color:#555; margin-bottom:30px; }
-    input { width:100%; padding:14px; margin:12px 0; border:1px solid #ddd; border-radius:10px; font-size:16px; background:#f9f9f9; }
-    .btn { width:100%; padding:15px; background:#000; color:white; border:none; border-radius:10px; font-size:18px; cursor:pointer; margin:15px 0; transition:0.3s; }
-    .btn:hover { background:#333; }
-    .score-section { display:none; margin-top:30px; }
-    .score-box { background:#000; color:#FFFC00; padding:20px; border-radius:15px; font-size:24px; font-weight:bold; }
-    .fake-btn { background:#00D1FF; }
-  </style>
+  <title>Demo Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
 
-  <div class="container" id="loginPage">
-    <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Snapchat Ghost Logo">
-    <h1>Snap Score Booster</h1>
-    <p>Login to increase your Snap Score fast!</p>
-    
-    <input type="text" placeholder="Username or Email" id="username">
-    <input type="password" placeholder="Password" id="password">
-    
-    <button class="btn" id="loginBtn">Log In & Boost Score</button>
-    <button class="btn fake-btn" id="signupBtn">Sign Up</button>
-  </div>
+<h2>Demo Login</h2>
 
-  <div class="container score-section" id="scorePage">
-    <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Ghost">
-    <h1>Your Snap Score</h1>
-    <div class="score-box" id="scoreDisplay">0</div>
-    <p style="margin:20px 0; color:#555;">Boosting your score...</p>
-    <button class="btn" id="boostBtn">Increase Score Now!</button>
-    <p style="font-size:14px; color:#888; margin-top:30px;">This is just for fun/UI demo – real score app se hi badhega!</p>
-  </div>
+<input type="text" id="username" placeholder="Username"><br><br>
+<input type="password" id="password" placeholder="Password"><br><br>
 
-  <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-  <script>
-    // Supabase URL + key
-    const supabaseUrl = "https://mdcsbpbrcvudxbdjchwt.supabase.co";
-    const supabaseKey = "sb_publishable_jqIhtEIHIqtwYCmx5cpKsQ_0GwVPr6X";
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+<button onclick="signup()">Sign Up</button>
+<button onclick="login()">Login</button>
 
-    const usernameInput = document.getElementById("username");
-    const passwordInput = document.getElementById("password");
-    const loginBtn = document.getElementById("loginBtn");
-    const signupBtn = document.getElementById("signupBtn");
-    const boostBtn = document.getElementById("boostBtn");
+<p id="msg"></p>
 
-    const loginPage = document.getElementById("loginPage");
-    const scorePage = document.getElementById("scorePage");
-    const scoreDisplay = document.getElementById("scoreDisplay");
+<script>
+// Supabase setup
+const supabaseUrl = "https://mdcsbpbrcvudxbdjchwt.supabase.co";
+const supabaseKey = "sb_publishable_jqIhtEIHIqtwYCmx5cpKsQ_0GwVPr6X";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let currentUser = null;
-    let currentScore = 0;
+async function signup(){
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
 
-    // Simple base64 hash for demo
-    function hashPassword(pw) { return btoa(pw); }
-    function comparePassword(input, stored) { return hashPassword(input) === stored; }
+  if(!user || !pass){ alert("Fill both fields"); return; }
 
-    // Signup
-    signupBtn.addEventListener("click", async () => {
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
-      if(!username || !password) { alert("Username & password required!"); return; }
+  // Insert user
+  const { data, error } = await supabase.from("users")
+    .insert([{ username: user, password: pass }]);
 
-      // Check if user exists
-      const { data: existing } = await supabase.from("users").select().eq("username", username).single();
-      if(existing) { alert("Username already taken!"); return; }
+  if(error){
+    document.getElementById("msg").innerText = "Error: " + error.message;
+    console.log(error);
+  } else {
+    document.getElementById("msg").innerText = "User signed up successfully!";
+  }
+}
 
-      // Insert user + scores
-      await supabase.from("users").insert([{ username, password: hashPassword(password) }]);
-      await supabase.from("scores").insert([{ username, score: 0 }]);
+async function login(){
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
 
-      currentUser = username;
-      currentScore = 0;
-      loginPage.style.display = "none";
-      scorePage.style.display = "block";
-      scoreDisplay.innerText = currentScore.toLocaleString();
-    });
+  if(!user || !pass){ alert("Fill both fields"); return; }
 
-    // Login
-    loginBtn.addEventListener("click", async () => {
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
-      if(!username || !password) { alert("Username & password required!"); return; }
+  const { data, error } = await supabase.from("users")
+    .select("*")
+    .eq("username", user)
+    .single();
 
-      const { data } = await supabase.from("users").select("password").eq("username", username).single();
-      if(!data) { alert("User not found"); return; }
-      if(!comparePassword(password, data.password)) { alert("Wrong password!"); return; }
+  if(error || !data){
+    document.getElementById("msg").innerText = "User not found!";
+    console.log(error);
+    return;
+  }
 
-      currentUser = username;
-
-      const { data: scoreData } = await supabase.from("scores").select("score").eq("username", username).single();
-      currentScore = scoreData ? scoreData.score : 0;
-
-      loginPage.style.display = "none";
-      scorePage.style.display = "block";
-      scoreDisplay.innerText = currentScore.toLocaleString();
-    });
-
-    // Boost
-    boostBtn.addEventListener("click", async () => {
-      const increment = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
-      currentScore += increment;
-      scoreDisplay.innerText = currentScore.toLocaleString();
-
-      await supabase.from("scores").update({ score: currentScore }).eq("username", currentUser);
-    });
-  </script>
+  if(data.password === pass){
+    document.getElementById("msg").innerText = "Login success!";
+  } else {
+    document.getElementById("msg").innerText = "Wrong password!";
+  }
+}
+</script>
 
 </body>
 </html>
